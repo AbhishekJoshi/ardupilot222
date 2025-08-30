@@ -8,8 +8,6 @@ based on build_binaries.sh by Andrew Tridgell, March 2013
 AP_FLAKE8_CLEAN
 """
 
-from __future__ import print_function
-
 import datetime
 import optparse
 import os
@@ -493,7 +491,7 @@ is bob we will attempt to checkout bob-AVR'''
                                          "".join([binaryname, framesuffix]))
                 files_to_copy = []
                 extensions = [".apj", ".abin", "_with_bl.hex", ".hex"]
-                if vehicle == 'AP_Periph':
+                if vehicle == 'AP_Periph' or board == "Here4FC":
                     # need bin file for uavcan-gui-tool and MissionPlanner
                     extensions.append('.bin')
                 for extension in extensions:
@@ -538,8 +536,9 @@ is bob we will attempt to checkout bob-AVR'''
                                 self.mkpath(ddir)
                             self.addfwversion(ddir, vehicle)
                             features_filepath = os.path.join(ddir, "features.txt",)
-                            self.progress("Writing (%s)" % features_filepath)
-                            self.write_string_to_filepath(features_text, features_filepath)
+                            if features_text is not None:
+                                self.progress("Writing (%s)" % features_filepath)
+                                self.write_string_to_filepath(features_text, features_filepath)
                             self.progress("Copying %s to %s" % (path, ddir,))
                             shutil.copy(path, os.path.join(ddir, target_filename))
                         # the most recent build of every tag is kept around:
@@ -547,11 +546,12 @@ is bob we will attempt to checkout bob-AVR'''
                         if not os.path.exists(tdir):
                             self.mkpath(tdir)
                         # must addfwversion even if path already
-                        # exists as we re-use the "beta" directories
+                        # exists as we reuse the "beta" directories
                         self.addfwversion(tdir, vehicle)
                         features_filepath = os.path.join(tdir, "features.txt")
-                        self.progress("Writing (%s)" % features_filepath)
-                        self.write_string_to_filepath(features_text, features_filepath)
+                        if features_text is not None:
+                            self.progress("Writing (%s)" % features_filepath)
+                            self.write_string_to_filepath(features_text, features_filepath)
                         shutil.copy(path, os.path.join(tdir, target_filename))
                     except Exception as e:
                         self.print_exception_caught(e)
@@ -593,7 +593,7 @@ is bob we will attempt to checkout bob-AVR'''
         '''build Copter binaries'''
 
         boards = []
-        boards.extend(["aerofc-v1", "bebop"])
+        boards.extend(["aerofc-v1"])
         boards.extend(self.board_list.find_autobuild_boards('Copter'))
         self.build_vehicle(tag,
                            "ArduCopter",
@@ -605,7 +605,6 @@ is bob we will attempt to checkout bob-AVR'''
     def build_arduplane(self, tag):
         '''build Plane binaries'''
         boards = self.board_list.find_autobuild_boards('Plane')[:]
-        boards.append("disco")
         self.build_vehicle(tag,
                            "ArduPlane",
                            boards,
@@ -662,6 +661,7 @@ is bob we will attempt to checkout bob-AVR'''
         generator.run()
 
         generator.write_manifest_json(os.path.join(self.binaries, "manifest.json"))
+        generator.write_features_json(os.path.join(self.binaries, "features.json"))
         self.progress("Manifest generation successful")
 
         self.progress("Generating stable releases")
@@ -764,7 +764,7 @@ if __name__ == '__main__':
     tags = cmd_opts.tags
     if len(tags) == 0:
         # FIXME: wedge this defaulting into parser somehow
-        tags = ["stable", "beta-4.3", "beta", "latest"]
+        tags = ["stable", "beta", "latest"]
 
     bb = build_binaries(tags)
     bb.run()

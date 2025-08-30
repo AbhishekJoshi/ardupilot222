@@ -2,8 +2,11 @@
 #include <AP_HAL/AP_HAL.h>
 #if HAL_ENABLE_DRONECAN_DRIVERS
 #include <canard/interface.h>
+#include <dronecan_msgs.h>
 
 class AP_DroneCAN;
+class CANSensor;
+
 class CanardInterface : public Canard::Interface {
     friend class AP_DroneCAN;
 public:
@@ -47,12 +50,24 @@ public:
 
     bool add_interface(AP_HAL::CANIface *can_drv);
 
+    // add an auxillary driver for 11 bit frames
+    bool add_11bit_driver(CANSensor *sensor);
+
+    // handler for outgoing frames for auxillary drivers
+    bool write_aux_frame(AP_HAL::CANFrame &out_frame, const uint32_t timeout_us);
+    
 #if AP_TEST_DRONECAN_DRIVERS
     static CanardInterface& get_test_iface() { return test_iface; }
     static void processTestRx();
 #endif
 
+    void update_rx_protocol_stats(int16_t res);
+
     uint8_t get_node_id() const override { return canard.node_id; }
+
+    // get reference to the semaphore that is held during message receive
+    HAL_Semaphore &get_sem_rx(void) { return _sem_rx; }
+
 private:
     CanardInstance canard;
     AP_HAL::CANIface* ifaces[HAL_NUM_CAN_IFACES];
@@ -61,10 +76,14 @@ private:
     static CanardInterface test_iface;
 #endif
     uint8_t num_ifaces;
-    HAL_EventHandle _event_handle;
+    HAL_BinarySemaphore sem_handle;
     bool initialized;
     HAL_Semaphore _sem_tx;
     HAL_Semaphore _sem_rx;
     CanardTxTransfer tx_transfer;
+    dronecan_protocol_Stats protocol_stats;
+
+    // auxillary 11 bit CANSensor
+    CANSensor *aux_11bit_driver;
 };
 #endif // HAL_ENABLE_DRONECAN_DRIVERS

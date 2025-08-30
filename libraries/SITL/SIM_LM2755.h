@@ -1,4 +1,4 @@
-#include <AP_HAL/AP_HAL_Boards.h>
+#pragma once
 
 /*
  * To test in SITL:
@@ -6,9 +6,7 @@
  * ./Tools/autotest/sim_vehicle.py -v ArduCopter --rgbled
  */
 
-#ifndef AP_SIM_LM2755_ENABLED
-#define AP_SIM_LM2755_ENABLED (CONFIG_HAL_BOARD == HAL_BOARD_SITL)
-#endif
+#include "SIM_config.h"
 
 #if AP_SIM_LM2755_ENABLED
 
@@ -72,12 +70,7 @@ private:
                    uint8_t &_ramp_down_step_time,
                    uint8_t &_timing) :
             high_level{_high_level},
-            low_level{_low_level},
-            delay{_delay},
-            ramp_up_step_time{_ramp_up_step_time},
-            time_high{_time_high},
-            ramp_down_step_time{_ramp_down_step_time},
-            timing{_timing}
+            low_level{_low_level}
             { }
 
         void update();
@@ -88,11 +81,6 @@ private:
     private:
         uint8_t &high_level;
         uint8_t &low_level;
-        uint8_t &delay;
-        uint8_t &ramp_up_step_time;
-        uint8_t &time_high;
-        uint8_t &ramp_down_step_time;
-        uint8_t &timing;
 
         uint8_t output_value;
     };

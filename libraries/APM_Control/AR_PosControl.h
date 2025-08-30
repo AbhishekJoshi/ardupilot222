@@ -11,6 +11,11 @@ public:
     // constructor
     AR_PosControl(AR_AttitudeControl& atc);
 
+    // do not allow copying
+    CLASS_NO_COPY(AR_PosControl);
+
+    static AR_PosControl *get_singleton() { return _singleton; }
+
     // update navigation
     void update(float dt);
 
@@ -80,6 +85,8 @@ public:
     static const struct AP_Param::GroupInfo var_info[];
 
 private:
+
+    static AR_PosControl *_singleton;
 
     // initialise and check for ekf position resets
     void init_ekf_xy_reset();
